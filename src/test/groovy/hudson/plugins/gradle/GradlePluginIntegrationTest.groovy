@@ -188,7 +188,7 @@ task hello << { println 'Hello' }"""))
         'build/some/build.gradle' | [rootBuildScriptDir: 'build']                                                               | [null]
     }
 
-    def "Can use '#propertyValue' in system properties"() {
+    def "Can use '#escapedPropertyValue' in system properties"() {
         given:
         gradleInstallationRule.addInstallation()
         def p = j.createFreeStyleProject()
@@ -201,6 +201,7 @@ task hello << { println 'Hello' }"""))
         def build = j.assertBuildStatusSuccess(p.scheduleBuild2(0, new Cause.UserIdCause(), new ParametersAction(new TextParameterValue("PARAM", propertyValue))))
 
         then:
+        println getLog(build)
         getLog(build).contains("property=${propertyValue}")
 
         where:
@@ -210,8 +211,13 @@ task hello << { println 'Hello' }"""))
                 'renaming XYZ >> \'xyz\'',
                 'renaming XYZ >>> \'xyz\'',
                 'renaming XYZ >> "xyz"',
-                'renaming \'XYZ >> \'x"y"z\'"'
+                'renaming \'XYZ >> \'x"y"z\'"',
+                """
+                   Some
+                   multiline
+                   parameter""".stripIndent()
         ]
+        escapedPropertyValue=propertyValue.replaceAll('\r\n', '\\\\r\\\\n').replaceAll('\n', '\\\\n')
     }
 
     def "Config roundtrip"() {
